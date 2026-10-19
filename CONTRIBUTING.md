@@ -10,6 +10,14 @@ cargo test --workspace --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 ```
 
+Before committing worker changes, use the isolated environment and run:
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path '.\inference-worker').Path
+& "$env:LOCALAPPDATA\ReverseWarp\venv\Scripts\python.exe" -m compileall -q inference-worker
+& "$env:LOCALAPPDATA\ReverseWarp\venv\Scripts\python.exe" -m unittest discover -s inference-worker\tests -v
+```
+
 On Windows network shares, generated executables may be blocked. Point only the disposable build output to a local directory:
 
 ```powershell

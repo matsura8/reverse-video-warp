@@ -6,6 +6,7 @@ import sys
 
 from reversewarp_worker.cuda_runtime import DeviceError, inspect_device
 from reversewarp_worker.protocol import serve
+from reversewarp_worker.warp import run_cuda_self_test
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,6 +22,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="print device information as JSON and exit",
     )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run a deterministic inverse-warp kernel test and exit",
+    )
     return parser.parse_args()
 
 
@@ -35,6 +41,14 @@ def main() -> int:
     if args.probe:
         print(json.dumps(device.to_dict(), indent=2, sort_keys=True))
         return 0
+
+    if args.self_test:
+        if device.kind != "cuda":
+            print("CUDA self-test requires a cuda:N device", file=sys.stderr)
+            return 2
+        result = run_cuda_self_test(device.resolved)
+        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        return 0 if result.identity_max_error == 0 and result.deterministic else 3
 
     print(
         f"ReverseWarp worker ready on {device.resolved} ({device.name})",

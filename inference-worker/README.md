@@ -18,3 +18,11 @@ Requests and responses contain a protocol version and request ID. The initial su
 
 The worker never accepts command lines or arbitrary filesystem paths through this protocol.
 
+## CUDA kernel self-test
+
+The self-test runs a deterministic float32 identity warp through `torch.nn.functional.grid_sample`, synchronizes the CUDA device, and requires an exact uint8 round trip:
+
+```powershell
+& "$env:LOCALAPPDATA\ReverseWarp\venv\Scripts\python.exe" worker.py --device cuda:0 --self-test
+```
+

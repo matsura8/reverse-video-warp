@@ -5,6 +5,7 @@
   "description": "Local CUDA estimated inverse-warp reconstruction for user-selected browser video.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArqcurK01XIE71CAHhQ32CxjWioAt4r0rskAWyaHHDIMWejoALem1TmwZDOhuIgqbYkh3GDedrgrpd0f+pWV72OKCODdHJUrBS4LBUXMIwDz2omO+PU/ewRbuEnC8uxOYdNXtmDgriTLy7F2gwvt/Ua1UyE75DspSBBGjalDRruxj97VTEO0FTJNt060YtOL1was6QQK29wonfjLD8hLWtfNvGhe2UkHP3fH0OjEKDj6+jbXJBVDRVy5cpbbltFxJzFlpSopDYKt/2bLzH+ecs2cLGSQHtUi9Vy9YKy9Kqji8v24n2MNtfPVUJB4LpeDy2Lc0pQlshPYLVFrXZzv3TQIDAQAB",
   "action": { "default_title": "Start ReverseWarp" },
+  "commands": { "_execute_action": { "suggested_key": { "default": "Ctrl+Shift+Y" }, "description": "Start ReverseWarp" } },
   "background": { "service_worker": "background.js", "type": "module" },
   "permissions": ["activeTab", "nativeMessaging", "scripting", "storage", "tabCapture", "offscreen"],
   "host_permissions": ["http://127.0.0.1:17842/*"],

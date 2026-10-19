@@ -24,7 +24,7 @@ impl SessionStore {
         rand::rng().fill_bytes(&mut bytes);
         let token = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(bytes);
         let session = Session {
-            origin: origin.to_string(),
+            origin: normalize_origin(origin).to_string(),
             expires: Instant::now() + SESSION_LIFETIME,
         };
         self.entries
@@ -39,7 +39,8 @@ impl SessionStore {
         entries.retain(|_, session| session.expires > Instant::now());
         entries.get(token).is_some_and(|session| {
             origin.is_none_or(|value| {
-                value == session.origin || session.origin == "reversewarp-development"
+                normalize_origin(value) == session.origin
+                    || session.origin == "reversewarp-development"
             })
         })
     }
@@ -51,6 +52,10 @@ impl SessionStore {
             .remove(token)
             .is_some()
     }
+}
+
+fn normalize_origin(origin: &str) -> &str {
+    origin.trim_end_matches('/')
 }
 
 #[cfg(test)]
@@ -65,5 +70,12 @@ mod tests {
         assert!(!store.validate(&token, Some("chrome-extension://other")));
         assert!(store.revoke(&token));
         assert!(!store.validate(&token, Some("chrome-extension://expected")));
+    }
+
+    #[test]
+    fn chrome_native_origin_matches_fetch_origin_without_trailing_slash() {
+        let store = SessionStore::default();
+        let token = store.create("chrome-extension://expected/");
+        assert!(store.validate(&token, Some("chrome-extension://expected")));
     }
 }

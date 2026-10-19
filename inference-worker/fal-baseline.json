@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "upstream": {
+    "repository": "https://github.com/PeterWang512/FALdetector.git",
+    "commit": "64e44e868fcb213da264a616b89d87ec27116049",
+    "license": "Apache-2.0"
+  },
+  "weights": {
+    "global.pth": {
+      "url": "https://www.dropbox.com/s/rb8zpvrbxbbutxc/global.pth?dl=1",
+      "size": 82546417,
+      "sha256": "aeaf8e135c018fb5298c0ed3d2fc47b39dd656708463f86713187ca62bb9586d"
+    },
+    "local.pth": {
+      "url": "https://www.dropbox.com/s/pby9dhpr6cqziyl/local.pth?dl=1",
+      "size": 247495840,
+      "sha256": "f4413d59e61f6ecb2960263385e3b17e248acd3d1db4575666c0a02d121c7aaa"
+    }
+  }
+}

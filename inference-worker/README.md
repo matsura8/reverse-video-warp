@@ -26,3 +26,13 @@ The self-test runs a deterministic float32 identity warp through `torch.nn.funct
 & "$env:LOCALAPPDATA\ReverseWarp\venv\Scripts\python.exe" worker.py --device cuda:0 --self-test
 ```
 
+## Pinned FAL baseline
+
+`fal-baseline.json` pins the upstream Apache-2.0 source commit, weight URLs, byte lengths, and SHA-256 digests. Install and verify it with:
+
+```powershell
+.\installer\windows\setup-fal-baseline.ps1
+```
+
+The adapter imports only the model definitions. It does not expose the upstream path-based scripts or their automatic CPU fallback to untrusted requests.
+

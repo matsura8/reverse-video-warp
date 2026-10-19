@@ -18,7 +18,12 @@ const DEFAULT_PORT: u16 = 17_842;
 async fn main() -> Result<()> {
     let python = env_path("LOCALAPPDATA", "ReverseWarp/venv/Scripts/python.exe")?;
     let fal_root = env_path("LOCALAPPDATA", "ReverseWarp/third_party/FALdetector")?;
-    let worker_entry = env::current_dir()?.join("inference-worker/live.py");
+    let executable = env::current_exe().context("cannot resolve native host executable")?;
+    let install_root = executable
+        .parent()
+        .and_then(|path| path.parent())
+        .context("native host must be installed under ReverseWarp/bin")?;
+    let worker_entry = install_root.join("app/inference-worker/live.py");
     let threshold = env::var("REVERSEWARP_THRESHOLD")
         .ok()
         .map(|value| value.parse::<f32>())

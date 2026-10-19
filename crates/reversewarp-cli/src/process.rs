@@ -5,6 +5,8 @@ use anyhow::{Context, Result, bail};
 use clap::Args;
 use serde::Serialize;
 
+use crate::device::CudaDevice;
+
 const LABEL: &str = "Estimated reconstruction";
 
 #[derive(Debug, Args)]
@@ -20,9 +22,9 @@ pub struct ProcessArgs {
     /// Optional split-screen comparison destination.
     #[arg(long)]
     pub comparison: Option<PathBuf>,
-    /// Inference device, such as cuda:0 or cpu.
+    /// CUDA inference device. CPU processing is intentionally rejected.
     #[arg(long, default_value = "cuda:0")]
-    pub device: String,
+    pub device: CudaDevice,
     /// Validate the job and print its plan without creating output files.
     #[arg(long)]
     pub dry_run: bool,
@@ -79,10 +81,6 @@ fn validate(args: &ProcessArgs) -> Result<JobPlan> {
             ensure_distinct(diagnostic, path)?;
         }
     }
-    if args.device.trim().is_empty() {
-        bail!("device cannot be empty");
-    }
-
     let provenance_manifest = PathBuf::from(format!("{}.reversewarp.json", output.display()));
     ensure_available(&provenance_manifest)?;
     Ok(JobPlan {
@@ -92,7 +90,7 @@ fn validate(args: &ProcessArgs) -> Result<JobPlan> {
         diagnostic,
         comparison,
         provenance_manifest,
-        device: args.device.clone(),
+        device: args.device.to_string(),
         source_immutable: true,
         frames_persisted: false,
     })
@@ -152,7 +150,7 @@ mod tests {
             output,
             diagnostic: None,
             comparison: None,
-            device: "cuda:0".to_owned(),
+            device: "cuda:0".parse().unwrap(),
             dry_run: true,
         }
     }

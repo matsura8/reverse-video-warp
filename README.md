@@ -15,6 +15,18 @@ cargo build --workspace
 cargo test --workspace
 ```
 
+## CUDA setup and diagnostics
+
+The production path requires an NVIDIA CUDA device. CPU execution is not accepted by the Rust CLI.
+
+```powershell
+.\installer\windows\setup-cuda-worker.ps1
+$env:CARGO_TARGET_DIR = "$env:LOCALAPPDATA\Temp\reversewarp-target"
+cargo run --bin reversewarp -- doctor --device cuda:0
+```
+
+`doctor` verifies that the requested GPU is visible through `nvidia-smi`, that PyTorch loaded a CUDA build, and that a deterministic float32 inverse warp completes with zero identity error.
+
 ## Planned command
 
 ```powershell

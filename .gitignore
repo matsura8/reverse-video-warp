@@ -1,0 +1,21 @@
+/target/
+/.idea/
+/.vscode/
+*.log
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.webm
+*.onnx
+*.pt
+*.pth
+*.safetensors
+*.engine
+__pycache__/
+*.py[cod]
+.venv/
+
+# Keep small, intentionally committed test fixtures.
+!tests/fixtures/**
+

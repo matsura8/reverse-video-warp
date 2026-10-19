@@ -11,6 +11,10 @@ type ReverseWarpWindow = Window & typeof globalThis & {
 };
 const reverseWarpWindow = window as ReverseWarpWindow;
 
+function supportsOffscreenTabCapture(): boolean {
+  return chrome.runtime.getManifest().permissions?.includes("offscreen") ?? false;
+}
+
 function largestPlayingVideo(): HTMLVideoElement | null {
   return Array.from(document.querySelectorAll("video"))
     .filter((video) => video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.getBoundingClientRect().width > 80)
@@ -21,8 +25,21 @@ function largestPlayingVideo(): HTMLVideoElement | null {
     })[0] ?? null;
 }
 
+function largestVisiblePlayerFrame(): HTMLIFrameElement | null {
+  return Array.from(document.querySelectorAll("iframe"))
+    .filter((frame) => {
+      const rect = frame.getBoundingClientRect();
+      return rect.width > 240 && rect.height > 135;
+    })
+    .sort((left, right) => {
+      const a = left.getBoundingClientRect();
+      const b = right.getBoundingClientRect();
+      return b.width * b.height - a.width * a.height;
+    })[0] ?? null;
+}
+
 class ReverseWarpController {
-  private readonly source: HTMLVideoElement;
+  private readonly source: HTMLVideoElement | HTMLIFrameElement;
   private readonly capture = document.createElement("canvas");
   private readonly output = document.createElement("canvas");
   private readonly player = document.createElement("video");
@@ -34,7 +51,7 @@ class ReverseWarpController {
   private timer = 0;
   private readonly observer: ResizeObserver;
 
-  constructor(source: HTMLVideoElement) {
+  constructor(source: HTMLVideoElement | HTMLIFrameElement) {
     this.source = source;
     this.player.autoplay = true;
     this.player.muted = true;
@@ -59,8 +76,28 @@ class ReverseWarpController {
   }
 
   start(): void {
+    if (this.source instanceof HTMLIFrameElement) {
+      void this.requestTabCapture();
+      return;
+    }
     this.timer = window.setInterval(() => void this.tick(), 83);
     void this.tick();
+  }
+
+  private async requestTabCapture(): Promise<void> {
+    if (this.stopped || this.fallbackRequested) return;
+    this.fallbackRequested = true;
+    clearInterval(this.timer);
+    const rect = this.source.getBoundingClientRect();
+    const response = await chrome.runtime.sendMessage({
+      type: supportsOffscreenTabCapture() ? "reversewarp-request-tab-capture" : "reversewarp-request-display-capture",
+      rect: rect.toJSON(), viewportWidth: innerWidth, viewportHeight: innerHeight,
+    } satisfies ExtensionMessage);
+    if (response?.ok) {
+      this.chrome.textContent = "Estimated reconstruction · tab capture · Stop";
+      return;
+    }
+    this.stop(new Error(response?.error ?? "browser capture fallback failed"));
   }
 
   private readonly position = (): void => {
@@ -70,7 +107,7 @@ class ReverseWarpController {
   };
 
   private async tick(): Promise<void> {
-    if (this.stopped || this.busy || this.source.paused || this.source.ended) return;
+    if (!(this.source instanceof HTMLVideoElement) || this.stopped || this.busy || this.source.paused || this.source.ended) return;
     this.busy = true;
     try {
       const scale = Math.min(1, 640 / this.source.videoWidth);
@@ -92,17 +129,8 @@ class ReverseWarpController {
       this.failures = 0;
     } catch (error) {
       if (!this.fallbackRequested && error instanceof DOMException && error.name === "SecurityError") {
-        this.fallbackRequested = true;
-        clearInterval(this.timer);
-        const rect = this.source.getBoundingClientRect();
-        const response = await chrome.runtime.sendMessage({
-          type: chrome.offscreen ? "reversewarp-request-tab-capture" : "reversewarp-request-display-capture",
-          rect: rect.toJSON(), viewportWidth: innerWidth, viewportHeight: innerHeight,
-        } satisfies ExtensionMessage);
-        if (response?.ok) {
-          this.chrome.textContent = "Estimated reconstruction · tab capture · Stop";
-          return;
-        }
+        await this.requestTabCapture();
+        return;
       }
       this.failures += 1;
       this.chrome.textContent = `Estimated reconstruction · fail-open ${this.failures}/3 · Stop`;
@@ -147,9 +175,9 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage) => {
   }
   if (message.type !== "reversewarp-start") return;
   reverseWarpWindow.__reverseWarpController?.stop();
-  const video = largestPlayingVideo();
-  if (!video) throw new Error("ReverseWarp found no visible playable video");
-  const controller = new ReverseWarpController(video);
+  const source = largestPlayingVideo() ?? largestVisiblePlayerFrame();
+  if (!source) throw new Error("ReverseWarp found no visible playable video or embedded player");
+  const controller = new ReverseWarpController(source);
   reverseWarpWindow.__reverseWarpController = controller;
   controller.start();
 });

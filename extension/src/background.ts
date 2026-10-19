@@ -5,7 +5,7 @@ type BackgroundMessage =
   | { type: "reversewarp-request-tab-capture"; rect: DOMRectInit; viewportWidth: number; viewportHeight: number }
   | { type: "reversewarp-request-display-capture"; rect: DOMRectInit; viewportWidth: number; viewportHeight: number }
   | { type: "reversewarp-start-offscreen"; streamId: string; tabId: number; rect: DOMRectInit; viewportWidth: number; viewportHeight: number }
-  | { type: "reversewarp-render-frame"; frame: number[]; applied: boolean; probability: number }
+  | { type: "reversewarp-render-frame"; tabId?: number; frame: number[]; applied: boolean; probability: number }
   | { type: "reversewarp-stop" };
 type Session = { endpoint: string; token: string };
 
@@ -62,6 +62,11 @@ chrome.action.onClicked.addListener(async (tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message: BackgroundMessage, _sender, sendResponse) => {
+  if (message.type === "reversewarp-render-frame") {
+    const tabId = _sender.tab?.id ?? message.tabId;
+    if (tabId) void chrome.tabs.sendMessage(tabId, message);
+    return false;
+  }
   if (message.type === "reversewarp-process-frame") {
     void (async () => {
       try {

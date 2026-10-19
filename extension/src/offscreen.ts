@@ -1,7 +1,7 @@
 type OffscreenMessage =
   | { type: "reversewarp-start-offscreen"; streamId: string; tabId: number; rect: DOMRectInit; viewportWidth: number; viewportHeight: number }
   | { type: "reversewarp-process-frame"; frame: number[] }
-  | { type: "reversewarp-render-frame"; frame: number[]; applied: boolean; probability: number }
+  | { type: "reversewarp-render-frame"; tabId: number; frame: number[]; applied: boolean; probability: number }
   | { type: "reversewarp-stop-offscreen" };
 
 let tracks: MediaStreamTrack[] = [];
@@ -47,7 +47,10 @@ async function startCapture(message: Extract<OffscreenMessage, { type: "reversew
       const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error("tab frame encoding failed")), "image/jpeg", 0.82));
       const reply = await chrome.runtime.sendMessage({ type: "reversewarp-process-frame", frame: Array.from(new Uint8Array(await blob.arrayBuffer())) } satisfies OffscreenMessage);
       if (!reply?.ok) throw new Error(reply?.error ?? "frame processing failed");
-      await chrome.tabs.sendMessage(message.tabId, { type: "reversewarp-render-frame", frame: reply.frame, applied: reply.applied, probability: reply.probability } satisfies OffscreenMessage);
+      await chrome.runtime.sendMessage({
+        type: "reversewarp-render-frame", tabId: message.tabId,
+        frame: reply.frame, applied: reply.applied, probability: reply.probability,
+      } satisfies OffscreenMessage);
     } finally {
       busy = false;
     }

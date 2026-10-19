@@ -1,4 +1,6 @@
 --index-url https://download.pytorch.org/whl/cu130
+--extra-index-url https://pypi.org/simple
 torch==2.13.0
 torchvision==0.28.0
+opencv-python-headless==4.14.0.94
 

@@ -2,11 +2,11 @@
 
 ReverseWarp Local is a local-first research project for estimating and visualizing inverse facial warps in video. The result is always presented as an **Estimated reconstruction**; it is not an authentic recovery of removed pixels or proof of manipulation.
 
-The repository currently targets the first engineering milestone: a safe, offline Rust command-line demonstrator. Browser capture and live WebRTC work begin only after the offline pipeline has a repeatable quality baseline.
+The repository now includes a safe, offline Rust command-line demonstrator backed by the pinned `FALdetector` models and a CUDA-first video pipeline. Browser capture and live WebRTC remain under active development.
 
 ## Status
 
-Early scaffold. No FAL model or production video pipeline is included yet.
+Offline milestone complete: the CLI supervises local CUDA inference, tracks faces, applies temporally smoothed inverse warps, encodes through NVENC, preserves source audio, emits heatmap and split-screen views, and writes a SHA-256 provenance manifest. Model weights are installed locally and are intentionally not committed.
 
 ## Build
 
@@ -27,7 +27,7 @@ cargo run --bin reversewarp -- doctor --device cuda:0
 
 `doctor` verifies that the requested GPU is visible through `nvidia-smi`, that PyTorch loaded a CUDA build, and that a deterministic float32 inverse warp completes with zero identity error.
 
-## Planned command
+## Process a local video
 
 ```powershell
 reversewarp process input.mp4 `
@@ -36,6 +36,8 @@ reversewarp process input.mp4 `
   --comparison split.mp4 `
   --device cuda:0
 ```
+
+The source is never overwritten. Existing destinations are rejected, and each successful job writes `corrected.mp4.reversewarp.json` with artifact hashes, CUDA/model settings, processing counts, and the required `Estimated reconstruction` label.
 
 See [PROJECT_OUTLINE.md](PROJECT_OUTLINE.md) for scope, safety constraints, architecture, and delivery phases.
 

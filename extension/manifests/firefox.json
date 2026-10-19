@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "ReverseWarp Local",
+  "version": "0.1.0",
+  "description": "Local CUDA estimated inverse-warp reconstruction for user-selected browser video.",
+  "action": { "default_title": "Start ReverseWarp" },
+  "background": { "scripts": ["background.js"], "type": "module" },
+  "permissions": ["activeTab", "nativeMessaging", "scripting", "storage"],
+  "host_permissions": ["http://127.0.0.1:17842/*"],
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://127.0.0.1:17842" },
+  "browser_specific_settings": { "gecko": { "id": "reversewarp@maxpowerit.local", "strict_min_version": "121.0" } },
+  "web_accessible_resources": []
+}

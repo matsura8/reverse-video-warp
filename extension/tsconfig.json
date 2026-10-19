@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "None",
+    "strict": true,
+    "noEmit": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["chrome"],
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,5 +1,8 @@
+mod process;
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use process::ProcessArgs;
 
 #[derive(Debug, Parser)]
 #[command(name = "reversewarp", version, about)]
@@ -10,16 +13,12 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Process one local video without modifying the source.
-    Process,
+    /// Validate and prepare one local video processing job.
+    Process(ProcessArgs),
 }
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
-
-    match cli.command {
-        Command::Process => {
-            anyhow::bail!("the offline processing pipeline has not been enabled yet")
-        }
+    match Cli::parse().command {
+        Command::Process(args) => process::run(&args),
     }
 }

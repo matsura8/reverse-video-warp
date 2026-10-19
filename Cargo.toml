@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/reversewarp-cli"]
+members = ["crates/reversewarp-cli", "native-host"]
 resolver = "2"
 
 [workspace.package]
